@@ -11,7 +11,9 @@ terraform {
 }
 
 locals {
-  env = "prod"
+  env_vars    = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+  env         = local.env_vars.locals.env
 }
 
 dependencies {
@@ -29,10 +31,10 @@ dependency "network" {
 }
 
 inputs = {
-  name              = "demo-${local.env}-alb"
+  name              = "demo-${local.env}-${local.region_vars.locals.region}-alb"
   vpc_id            = dependency.network.outputs.vpc_id
   subnet_ids        = dependency.network.outputs.public_subnet_ids
-  allowed_cidrs     = ["0.0.0.0/0"]
+  allowed_cidrs     = local.env_vars.locals.alb_allowed_cidrs
   listener_port     = 80
   target_port       = 80
   target_type       = "ip"
@@ -41,5 +43,6 @@ inputs = {
   tags = {
     Environment = local.env
     Workload    = "ingress"
+    Region      = local.region_vars.locals.region
   }
 }

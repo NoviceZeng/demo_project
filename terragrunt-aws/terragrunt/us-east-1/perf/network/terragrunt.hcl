@@ -11,19 +11,21 @@ terraform {
 }
 
 locals {
-  env         = "prod"
+  env_vars    = read_terragrunt_config(find_in_parent_folders("env.hcl"))
   region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+  env         = local.env_vars.locals.env
 }
 
 inputs = {
-  name            = "${local.region_vars.locals.vpc_name}-${local.env}"
-  cidr_block      = local.region_vars.locals.prod_vpc_cidr
+  name            = "${local.env_vars.locals.vpc_name_prefix}-${local.env}"
+  cidr_block      = local.env_vars.locals.vpc_cidr
   azs             = local.region_vars.locals.azs
-  public_subnets  = ["10.20.0.0/24", "10.20.1.0/24", "10.20.2.0/24"]
-  private_subnets = ["10.20.10.0/24", "10.20.11.0/24", "10.20.12.0/24"]
+  public_subnets  = local.env_vars.locals.public_subnets
+  private_subnets = local.env_vars.locals.private_subnets
 
   tags = {
     Environment = local.env
     Platform    = "demo"
+    Region      = local.region_vars.locals.region
   }
 }

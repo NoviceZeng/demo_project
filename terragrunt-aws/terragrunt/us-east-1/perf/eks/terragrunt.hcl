@@ -11,7 +11,9 @@ terraform {
 }
 
 locals {
-  env = "prod"
+  env_vars    = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+  env         = local.env_vars.locals.env
 }
 
 dependency "network" {
@@ -25,7 +27,7 @@ dependency "network" {
 }
 
 inputs = {
-  cluster_name            = "demo-${local.env}-eks"
+  cluster_name            = "${local.env_vars.locals.cluster_name_prefix}-${local.region_vars.locals.region}"
   cluster_version         = "1.30"
   vpc_id                  = dependency.network.outputs.vpc_id
   subnet_ids              = dependency.network.outputs.private_subnet_ids
@@ -34,10 +36,10 @@ inputs = {
 
   eks_managed_node_groups = {
     default = {
-      instance_types = ["m6i.large"]
-      min_size       = 2
-      max_size       = 6
-      desired_size   = 2
+      instance_types = local.env_vars.locals.eks_instance_types
+      min_size       = local.env_vars.locals.eks_min_size
+      max_size       = local.env_vars.locals.eks_max_size
+      desired_size   = local.env_vars.locals.eks_desired_size
       capacity_type  = "ON_DEMAND"
     }
   }
@@ -45,5 +47,6 @@ inputs = {
   tags = {
     Environment = local.env
     Workload    = "eks"
+    Region      = local.region_vars.locals.region
   }
 }
