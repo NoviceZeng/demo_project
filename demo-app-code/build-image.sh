@@ -28,7 +28,7 @@ done
 
 service_dir="$microsvc"
 svc_name="demo-app-${microsvc}"
-image_name="${harbor}/vccp/${svc_name}:${build_number}"
+image_name="${harbor}/demo-app/${svc_name}:${build_number}"
 
 if [[ ! -d "$service_dir" ]]; then
     echo "Service directory not found: $service_dir"
