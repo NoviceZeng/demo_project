@@ -1,0 +1,44 @@
+{{- $fullName := include "demo-app.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "demo-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "demo-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "demo-app.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ $fullName }}
+        image: "{{ .Values.image.repository }}/{{ $fullName }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+          - name: http
+            containerPort: {{ .Values.service.port }}
+            protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.service.port }}
+          initialDelaySeconds: {{ .Values.service.Probe.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.service.Probe.timeoutSeconds }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.service.port }}
+          initialDelaySeconds: {{ .Values.service.Probe.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.service.Probe.timeoutSeconds }}

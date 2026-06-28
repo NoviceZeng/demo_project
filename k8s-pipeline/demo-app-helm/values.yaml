@@ -1,0 +1,51 @@
+replicaCount: 1
+project: demo-app
+envType:
+namespace:
+
+image:
+  repository: harbor.fusionride.com/vccp
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: 
+- name: registry-pull-secret
+
+service:
+  enabled: false
+  type: ClusterIP
+  port: 
+  Probe: 
+    #default value is 1
+    timeoutSeconds: 5
+    #default value is 0
+    initialDelaySeconds: 5
+    #default value
+    failureThreshold: 3
+    successThreshold: 1
+    periodSeconds: 10
+
+#used by _helpers.tmp
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+#resources:
+#  limits:
+#    cpu: 100m
+#    memory: 128Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: 
+    kubernetes.io/ingress.class: fr-ingressclass
+  hosts:
+    - host: gateway-sit.vccp.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
