@@ -6,11 +6,14 @@ AWS infrastructure managed with Terraform modules and Terragrunt.
 ### Dry run and Apply 
 <img width="1174" height="844" alt="image" src="https://github.com/user-attachments/assets/4c950c45-2932-45e4-a778-a262a21a79cb" />
 <img width="1179" height="871" alt="image" src="https://github.com/user-attachments/assets/062dd107-ca72-4553-8d17-1de3b4f5823c" />
+
 ### AWS Consonle
 <img width="1576" height="275" alt="image" src="https://github.com/user-attachments/assets/73e3d362-18c8-4cc6-bd72-1a232eda85c0" />
 <img width="1525" height="353" alt="image" src="https://github.com/user-attachments/assets/730aa652-4061-4e39-8a12-8a5238e3c0da" />
+
 ### Terraform Cloud
 <img width="1296" height="780" alt="image" src="https://github.com/user-attachments/assets/33c6922c-17e6-46be-9d3d-45d049cf92c1" />
+
 ## Environments and Regions
 
 - dev, test: us-east-1
