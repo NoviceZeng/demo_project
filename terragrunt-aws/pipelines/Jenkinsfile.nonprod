@@ -29,14 +29,14 @@ pipeline {
 
     stage('Preflight') {
       steps {
-        sh 'chmod +x ./scripts/deploy.sh'
+        sh 'chmod +x ./pipelines/scripts/deploy.sh'
         sh 'terragrunt --version'
       }
     }
 
     stage('Deploy') {
       steps {
-        sh './scripts/deploy.sh ${ACTION} ${TARGET_ENV}'
+        sh './pipelines/scripts/deploy.sh ${ACTION} ${TARGET_ENV}'
       }
     }
   }

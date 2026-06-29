@@ -2,20 +2,12 @@
 
 AWS infrastructure managed with Terraform modules and Terragrunt.
 
-Deployment environments:
+## Environments and Regions
 
-- dev
-- test
-- perf
-- staging
-- production
+- dev, test: us-east-1
+- perf, staging, production: us-east-1 and us-west-2
 
-Region strategy:
-
-- dev and test: single-region (us-east-1)
-- perf, staging, production: multi-region (us-east-1 and us-west-2)
-
-## Structure
+## Repository Layout
 
 ```text
 terragrunt-aws/
@@ -26,317 +18,106 @@ terragrunt-aws/
 │   ├── aws-alb/
 │   ├── aws-rds-mysql/
 │   └── aws-elasticache-redis/
+├── pipelines/
+│   ├── Jenkinsfile.nonprod
+│   ├── Jenkinsfile.prod
+│   └── scripts/
+│       ├── deploy.sh
+│       └── deploy-resource.sh
 └── terragrunt/
-    ├── shared/
-    │   └── iam-all/
+    ├── shared/iam-all/
     ├── us-east-1/
-    │   ├── region.hcl
     │   ├── dev/
-    │   │   ├── env.hcl
-    │   │   ├── network/
-    │   │   ├── eks/
-    │   │   ├── load-balancer/
-    │   │   ├── rds-mysql/
-    │   │   └── redis/
     │   ├── test/
-    │   │   ├── env.hcl
-    │   │   ├── network/
-    │   │   ├── eks/
-    │   │   ├── load-balancer/
-    │   │   ├── rds-mysql/
-    │   │   └── redis/
     │   ├── perf/
-    │   │   ├── env.hcl
-    │   │   ├── network/
-    │   │   ├── eks/
-    │   │   ├── load-balancer/
-    │   │   ├── rds-mysql/
-    │   │   └── redis/
     │   ├── staging/
-    │   │   ├── env.hcl
-    │   │   ├── network/
-    │   │   ├── eks/
-    │   │   ├── load-balancer/
-    │   │   ├── rds-mysql/
-    │   │   └── redis/
     │   └── production/
-    │       ├── env.hcl
-    │       ├── network/
-    │       ├── eks/
-    │       ├── load-balancer/
-    │       ├── rds-mysql/
-    │       └── redis/
     └── us-west-2/
-        ├── region.hcl
         ├── perf/
-        │   ├── env.hcl
-        │   ├── network/
-        │   ├── eks/
-        │   ├── load-balancer/
-        │   ├── rds-mysql/
-        │   └── redis/
         ├── staging/
-        │   ├── env.hcl
-        │   ├── network/
-        │   ├── eks/
-        │   ├── load-balancer/
-        │   ├── rds-mysql/
-        │   └── redis/
         └── production/
-            ├── env.hcl
-            ├── network/
-            ├── eks/
-            ├── load-balancer/
-            ├── rds-mysql/
-            └── redis/
 ```
 
 ## Prerequisites
 
-- Terraform >= 1.5
-- Terragrunt (newer versions recommended)
-- AWS credentials configured (for example via AWS profile, SSO, or environment variables)
-- Access to Terraform Cloud organization defined in root.hcl
+- Terraform 1.5+
+- Terragrunt (latest stable recommended)
+- AWS credentials configured (profile, SSO, or environment variables)
+- Access to the Terraform Cloud organization defined in [root.hcl](root.hcl)
 
-## How to run resources
+## Quick Start (Recommended)
 
-### 0) Use deploy script (recommended)
-
-Before deploy, run secret checks:
+From project root:
 
 ```bash
-./scripts/bootstrap-secrets.sh
+cd /Users/novice/Desktop/test/demo/demo_project/terragrunt-aws
 ```
 
-This project provides an automation script:
+Full environment deploy:
 
 ```bash
-./scripts/deploy.sh <action> <environment>
+./pipelines/scripts/deploy.sh <action> <environment>
 ```
-
-Parameters:
 
 - action: plan | apply | destroy
 - environment: dev | test | perf | staging | production
 
-Examples:
+Single resource deploy:
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/terragrunt-aws
-
-./scripts/deploy.sh plan dev
-./scripts/deploy.sh apply test
-./scripts/deploy.sh plan perf
-./scripts/deploy.sh apply staging
-./scripts/deploy.sh destroy production
+./pipelines/scripts/deploy-resource.sh <action> <environment> <resource>
 ```
-
-Script behavior:
-
-- dev/test deploy only to us-east-1
-- perf/staging/production deploy to us-east-1 and us-west-2
-
-### 0.1) Use single-resource deploy script
-
-When you only want one resource, use:
-
-```bash
-./scripts/deploy-resource.sh <action> <environment> <resource>
-```
-
-Parameters:
 
 - action: plan | apply | destroy
 - environment: dev | test | perf | staging | production
 - resource: network | eks | load-balancer | rds-mysql | redis
 
-Examples:
+## Common Examples
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/terragrunt-aws
+# Full environment
+./pipelines/scripts/deploy.sh plan dev
+./pipelines/scripts/deploy.sh apply test
+./pipelines/scripts/deploy.sh plan perf
+./pipelines/scripts/deploy.sh apply staging
+./pipelines/scripts/deploy.sh destroy production
 
-./scripts/deploy-resource.sh plan dev network
-./scripts/deploy-resource.sh apply test eks
-./scripts/deploy-resource.sh plan perf load-balancer
-./scripts/deploy-resource.sh apply perf rds-mysql
-./scripts/deploy-resource.sh plan staging redis
-./scripts/deploy-resource.sh destroy production eks
+# Single resource
+./pipelines/scripts/deploy-resource.sh plan dev network
+./pipelines/scripts/deploy-resource.sh apply test eks
+./pipelines/scripts/deploy-resource.sh plan perf load-balancer
+./pipelines/scripts/deploy-resource.sh apply perf rds-mysql
+./pipelines/scripts/deploy-resource.sh plan staging redis
+./pipelines/scripts/deploy-resource.sh destroy production eks
 ```
 
-Single-resource script behavior:
+## Direct Terragrunt Usage (Without Scripts)
 
-- dev/test execute only in us-east-1
-- perf/staging/production execute in us-east-1 and us-west-2
-
-### 1) Go to project root
-
-```bash
-cd /Users/novice/Desktop/test/demo/demo_project/terragrunt-aws
-```
-
-### 1.1) Validate secrets and env vars
-
-Run generic check:
-
-```bash
-./scripts/bootstrap-secrets.sh
-```
-
-Run check for a specific environment:
-
-```bash
-./scripts/bootstrap-secrets.sh production
-```
-
-Set required and optional variables:
-
-```bash
-export MYSQL_MASTER_PASSWORD='StrongPassword123!'
-export REDIS_AUTH_TOKEN='YourRedisAuthToken'
-```
-
-### 2) Deploy a full environment (single region)
-
-Run all resources in dependency order (Network -> RDS/Redis -> EKS -> ALB):
+Single-region environment (dev/test):
 
 ```bash
 cd terragrunt/us-east-1/dev
-terragrunt run-all plan
-terragrunt run-all apply
+terragrunt plan --all
+terragrunt apply --all
 ```
 
-For test:
-
-```bash
-cd ../test
-terragrunt run-all plan
-terragrunt run-all apply
-```
-
-### 3) Deploy a multi-region environment (perf, staging, production)
-
-Run both regions separately for the same environment.
-
-Recommended order in each region:
-
-1. network
-2. rds-mysql
-3. redis
-4. eks
-5. load-balancer
-
-Perf:
-
-```bash
-cd terragrunt/us-east-1/perf
-terragrunt run-all plan
-terragrunt run-all apply
-
-cd ../../us-west-2/perf
-terragrunt run-all plan
-terragrunt run-all apply
-```
-
-Staging:
+Multi-region environment (perf/staging/production):
 
 ```bash
 cd terragrunt/us-east-1/staging
-terragrunt run-all plan
-terragrunt run-all apply
+terragrunt plan --all
+terragrunt apply --all
 
 cd ../../us-west-2/staging
-terragrunt run-all plan
-terragrunt run-all apply
+terragrunt plan --all
+terragrunt apply --all
 ```
 
-Production:
-
-```bash
-cd terragrunt/us-east-1/production
-terragrunt run-all plan
-terragrunt run-all apply
-
-cd ../../us-west-2/production
-terragrunt run-all plan
-terragrunt run-all apply
-```
-
-### 4) Deploy a single resource
-
-Network:
-
-```bash
-cd terragrunt/us-east-1/perf/network
-terragrunt plan
-terragrunt apply
-```
-
-EKS (depends on Network):
-
-```bash
-cd ../eks
-terragrunt plan
-terragrunt apply
-```
-
-ALB (depends on Network and EKS):
-
-```bash
-cd ../load-balancer
-terragrunt plan
-terragrunt apply
-```
-
-MySQL RDS (depends on Network):
-
-```bash
-cd ../rds-mysql
-terragrunt plan
-terragrunt apply
-```
-
-Redis (depends on Network):
-
-```bash
-cd ../redis
-terragrunt plan
-terragrunt apply
-```
-
-### 5) Shared IAM stack
-
-```bash
-cd terragrunt/shared/iam-all
-terragrunt plan
-terragrunt apply
-```
-
-## Validate and format
-
-From project root:
-
-```bash
-terraform fmt -check -recursive terraform-modules
-terragrunt hcl format
-```
-
-## Destroy resources
-
-Destroy a full environment:
+Destroy an environment:
 
 ```bash
 cd terragrunt/us-east-1/dev
-terragrunt run-all destroy
-```
-
-Destroy a multi-region environment (example: staging):
-
-```bash
-cd terragrunt/us-east-1/staging
-terragrunt run-all destroy
-
-cd ../../us-west-2/staging
-terragrunt run-all destroy
+terragrunt destroy --all
 ```
 
 Destroy a single stack:
@@ -346,59 +127,39 @@ cd terragrunt/us-east-1/perf/network
 terragrunt destroy
 ```
 
-## Jenkins pipelines
+## Jenkins Pipelines
 
-This repository includes two Jenkins pipelines:
+Two Jenkins pipelines are included in [pipelines](pipelines):
 
-- Jenkinsfile.nonprod: for dev, test, perf
-- Jenkinsfile.prod: for staging, production with manual approval before apply
+- [pipelines/Jenkinsfile.nonprod](pipelines/Jenkinsfile.nonprod): dev, test, perf
+- [pipelines/Jenkinsfile.prod](pipelines/Jenkinsfile.prod): staging, production (manual approval gate)
 
-### Pipeline 1: non-production (dev | test | perf)
-
-Use [Jenkinsfile.nonprod](Jenkinsfile.nonprod) in a Jenkins pipeline job.
-
-Parameters:
+Non-production pipeline parameters:
 
 - TARGET_ENV: dev | test | perf
 - ACTION: plan | apply | destroy
 
-Behavior:
-
-- Runs ./scripts/deploy.sh with the selected ACTION and TARGET_ENV
-- No manual approval gate
-
-### Pipeline 2: protected (staging | production)
-
-Use [Jenkinsfile.prod](Jenkinsfile.prod) in a Jenkins pipeline job.
-
-Parameters:
+Production pipeline parameters:
 
 - TARGET_ENV: staging | production
-- APPROVER_IDS: optional comma-separated Jenkins user IDs that can approve
+- APPROVER_IDS: optional comma-separated Jenkins user IDs allowed to approve
 
-Behavior:
+Suggested Jenkins job setup:
 
-- Runs plan first: ./scripts/deploy.sh plan TARGET_ENV
-- Waits for manual approval in Jenkins
-- Runs apply only after approval: ./scripts/deploy.sh apply TARGET_ENV
+1. Create a job for non-production and set Pipeline Script Path to pipelines/Jenkinsfile.nonprod.
+2. Create a job for staging/production and set Pipeline Script Path to pipelines/Jenkinsfile.prod.
+3. Restrict who can trigger and approve production deployments.
 
-### Suggested Jenkins job setup
+## Validation and Formatting
 
-1. Create job terragrunt-aws-nonprod and point Pipeline Script Path to Jenkinsfile.nonprod.
-2. Create job terragrunt-aws-prod and point Pipeline Script Path to Jenkinsfile.prod.
-3. Restrict who can trigger prod job and who can approve production deployments.
+```bash
+terraform fmt -check -recursive terraform-modules
+terragrunt hcl format
+```
 
-## Notes
+## Operational Notes
 
-- The Terragrunt files include dependency blocks and mock outputs for plan/validate workflows.
-- Environment-specific sizing and CIDR settings are defined in each env.hcl.
-- Tune CIDR ranges, node group sizes, and allowed CIDRs to match your network/security standards.
-- Review root.hcl and region.hcl values (region, tags, Terraform Cloud workspace naming) before rollout.
-- Set MYSQL_MASTER_PASSWORD before deploying RDS, for example: export MYSQL_MASTER_PASSWORD='StrongPassword123!'.
-- Optionally set REDIS_AUTH_TOKEN for Redis auth: export REDIS_AUTH_TOKEN='YourRedisAuthToken'.
-
-## Scripts Summary
-
-- scripts/deploy.sh: Run full environment with terragrunt run-all.
-- scripts/deploy-resource.sh: Run a single resource (network/eks/load-balancer/rds-mysql/redis).
-- scripts/bootstrap-secrets.sh: Validate required/optional secret environment variables.
+- Review [root.hcl](root.hcl) and each region/env hcl before rollout.
+- Confirm CIDR ranges, node group sizing, and allow-lists match your standards.
+- Ensure required secrets are available before deploying stateful services.
+- Common variables used by modules include MYSQL_MASTER_PASSWORD and REDIS_AUTH_TOKEN.

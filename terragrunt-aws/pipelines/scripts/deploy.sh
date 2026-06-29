@@ -3,32 +3,29 @@
 # Strict mode: exit immediately on any error to avoid unsafe continuation
 set -euo pipefail
 
-# Script purpose: run terragrunt plan/apply/destroy for a single resource
-# Supported resources: network | eks | load-balancer | rds-mysql | redis
+# Script purpose: run terragrunt plan/apply/destroy with --all in a unified way
 # Environment strategy:
 # - dev/test: single region us-east-1
 # - perf/staging/production: multi-region us-east-1 + us-west-2
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 TG_DIR="$ROOT_DIR/terragrunt"
 
 usage() {
   cat <<'EOF'
 Usage:
-  ./scripts/deploy-resource.sh <action> <environment> <resource>
+  ./pipelines/scripts/deploy.sh <action> <environment>
 
 Arguments:
   action       plan | apply | destroy
   environment  dev | test | perf | staging | production
-  resource     network | eks | load-balancer | rds-mysql | redis
 
 Examples:
-  ./scripts/deploy-resource.sh plan dev network
-  ./scripts/deploy-resource.sh apply test eks
-  ./scripts/deploy-resource.sh plan perf load-balancer
-  ./scripts/deploy-resource.sh apply perf rds-mysql
-  ./scripts/deploy-resource.sh plan staging redis
-  ./scripts/deploy-resource.sh destroy production eks
+  ./pipelines/scripts/deploy.sh plan dev
+  ./pipelines/scripts/deploy.sh apply test
+  ./pipelines/scripts/deploy.sh plan perf
+  ./pipelines/scripts/deploy.sh apply staging
+  ./pipelines/scripts/deploy.sh destroy production
 
 Behavior:
   dev/test                 -> us-east-1 only
@@ -59,25 +56,11 @@ resolve_regions() {
   esac
 }
 
-validate_resource() {
-  local resource="$1"
-  case "$resource" in
-    network|eks|load-balancer|rds-mysql|redis)
-      ;;
-    *)
-      echo "Error: invalid resource: $resource"
-      usage
-      exit 1
-      ;;
-  esac
-}
-
-run_for_region_env_resource() {
+run_for_region_env() {
   local action="$1"
   local region="$2"
   local env="$3"
-  local resource="$4"
-  local target="$TG_DIR/$region/$env/$resource"
+  local target="$TG_DIR/$region/$env"
 
   if [[ ! -d "$target" ]]; then
     echo "Error: target path not found: $target"
@@ -85,23 +68,22 @@ run_for_region_env_resource() {
   fi
 
   echo "=================================================="
-  echo "Running terragrunt $action in: $target"
+  echo "Running terragrunt $action --all in: $target"
   echo "=================================================="
 
-  (cd "$target" && terragrunt "$action")
+  (cd "$target" && terragrunt "$action" --all)
 }
 
 main() {
   require_cmd terragrunt
 
-  if [[ $# -ne 3 ]]; then
+  if [[ $# -ne 2 ]]; then
     usage
     exit 1
   fi
 
   local action="$1"
   local env="$2"
-  local resource="$3"
 
   case "$action" in
     plan|apply|destroy)
@@ -112,8 +94,6 @@ main() {
       exit 1
       ;;
   esac
-
-  validate_resource "$resource"
 
   local regions
   regions="$(resolve_regions "$env")"
@@ -126,15 +106,14 @@ main() {
   echo "Project root: $ROOT_DIR"
   echo "Action      : $action"
   echo "Environment : $env"
-  echo "Resource    : $resource"
   echo "Regions     : $regions"
 
-  # Execute per region and per resource so logs and failure points stay clear
+  # Execute region by region so logs and failure points remain clear
   for region in $regions; do
-    run_for_region_env_resource "$action" "$region" "$env" "$resource"
+    run_for_region_env "$action" "$region" "$env"
   done
 
-  echo "Done: terragrunt $action for '$env/$resource'."
+  echo "Done: terragrunt $action --all for environment '$env'."
 }
 
 main "$@"
