@@ -346,6 +346,48 @@ cd terragrunt/us-east-1/perf/network
 terragrunt destroy
 ```
 
+## Jenkins pipelines
+
+This repository includes two Jenkins pipelines:
+
+- Jenkinsfile.nonprod: for dev, test, perf
+- Jenkinsfile.prod: for staging, production with manual approval before apply
+
+### Pipeline 1: non-production (dev | test | perf)
+
+Use [Jenkinsfile.nonprod](Jenkinsfile.nonprod) in a Jenkins pipeline job.
+
+Parameters:
+
+- TARGET_ENV: dev | test | perf
+- ACTION: plan | apply | destroy
+
+Behavior:
+
+- Runs ./scripts/deploy.sh with the selected ACTION and TARGET_ENV
+- No manual approval gate
+
+### Pipeline 2: protected (staging | production)
+
+Use [Jenkinsfile.prod](Jenkinsfile.prod) in a Jenkins pipeline job.
+
+Parameters:
+
+- TARGET_ENV: staging | production
+- APPROVER_IDS: optional comma-separated Jenkins user IDs that can approve
+
+Behavior:
+
+- Runs plan first: ./scripts/deploy.sh plan TARGET_ENV
+- Waits for manual approval in Jenkins
+- Runs apply only after approval: ./scripts/deploy.sh apply TARGET_ENV
+
+### Suggested Jenkins job setup
+
+1. Create job terragrunt-aws-nonprod and point Pipeline Script Path to Jenkinsfile.nonprod.
+2. Create job terragrunt-aws-prod and point Pipeline Script Path to Jenkinsfile.prod.
+3. Restrict who can trigger prod job and who can approve production deployments.
+
 ## Notes
 
 - The Terragrunt files include dependency blocks and mock outputs for plan/validate workflows.

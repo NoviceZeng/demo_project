@@ -1,0 +1,78 @@
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+    ansiColor('xterm')
+  }
+
+  parameters {
+    choice(
+      name: 'TARGET_ENV',
+      choices: ['staging', 'production'],
+      description: 'Protected environment to deploy'
+    )
+    string(
+      name: 'APPROVER_IDS',
+      defaultValue: '',
+      description: 'Optional Jenkins user IDs allowed to approve (comma-separated). Leave empty to allow any authorized user.'
+    )
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Preflight') {
+      steps {
+        sh 'chmod +x ./scripts/deploy.sh'
+        sh 'terragrunt --version'
+      }
+    }
+
+    stage('Plan') {
+      steps {
+        sh './scripts/deploy.sh plan ${TARGET_ENV}'
+      }
+    }
+
+    stage('Manual Approval') {
+      steps {
+        script {
+          def approvers = params.APPROVER_IDS?.trim()
+          if (approvers) {
+            input(
+              message: "Approve deploy to ${params.TARGET_ENV}?",
+              ok: 'Approve and Deploy',
+              submitter: approvers
+            )
+          } else {
+            input(
+              message: "Approve deploy to ${params.TARGET_ENV}?",
+              ok: 'Approve and Deploy'
+            )
+          }
+        }
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        sh './scripts/deploy.sh apply ${TARGET_ENV}'
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "SUCCESS: apply completed for ${TARGET_ENV}."
+    }
+    failure {
+      echo "FAILED: apply for ${TARGET_ENV}."
+    }
+  }
+}

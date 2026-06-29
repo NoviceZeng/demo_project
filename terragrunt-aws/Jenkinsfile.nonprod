@@ -1,0 +1,52 @@
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+    ansiColor('xterm')
+  }
+
+  parameters {
+    choice(
+      name: 'TARGET_ENV',
+      choices: ['dev', 'test', 'perf'],
+      description: 'Non-production environment to deploy'
+    )
+    choice(
+      name: 'ACTION',
+      choices: ['plan', 'apply', 'destroy'],
+      description: 'Terragrunt action to run'
+    )
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Preflight') {
+      steps {
+        sh 'chmod +x ./scripts/deploy.sh'
+        sh 'terragrunt --version'
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        sh './scripts/deploy.sh ${ACTION} ${TARGET_ENV}'
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "SUCCESS: ${ACTION} completed for ${TARGET_ENV}."
+    }
+    failure {
+      echo "FAILED: ${ACTION} for ${TARGET_ENV}."
+    }
+  }
+}
