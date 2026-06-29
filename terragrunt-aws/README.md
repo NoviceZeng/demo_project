@@ -2,6 +2,11 @@
 
 AWS infrastructure managed with Terraform modules and Terragrunt.
 
+## Results
+### Terraform Cloud WorkSpace
+![Uploading image.png…]()
+
+
 ## Environments and Regions
 
 - dev, test: us-east-1
