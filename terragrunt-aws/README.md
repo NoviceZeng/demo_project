@@ -2,14 +2,6 @@
 
 AWS infrastructure managed with Terraform modules and Terragrunt.
 
-This project mirrors the terragrunt-gcloud hierarchy and maps core resources:
-
-- Network -> AWS VPC
-- GKE -> AWS EKS
-- Load Balancer -> AWS ALB
-- MySQL -> AWS RDS (MySQL)
-- Redis -> AWS ElastiCache (Redis)
-
 Deployment environments:
 
 - dev
