@@ -72,6 +72,79 @@ Includes:
 Start here for infra setup and run instructions:
 [terragrunt-aws/README.md](terragrunt-aws/README.md)
 
+## Application Design Diagram
+
+```mermaid
+flowchart LR
+    Client[Client / Browser] --> APIGW[api-gateway :8080]
+    APIGW --> USER[user-service :9002]
+    APIGW --> PRODUCT[product-service :9003]
+    APIGW --> ORDER[order-service :9006]
+    APIGW --> PAYMENT[payment-service :9007]
+    ORDER --> PAYMENT
+    ORDER --> PRODUCT
+    ORDER --> USER
+```
+
+## Infrastructure Design Diagram
+
+```mermaid
+flowchart TB
+    subgraph AWS_us_east_1[us-east-1]
+      VPC1[VPC / Subnets]
+      EKS1[EKS Cluster]
+      ALB1[Application Load Balancer]
+      RDS1[RDS MySQL]
+      REDIS1[ElastiCache Redis]
+      VPC1 --> EKS1
+      VPC1 --> ALB1
+      VPC1 --> RDS1
+      VPC1 --> REDIS1
+      ALB1 --> EKS1
+      EKS1 --> RDS1
+      EKS1 --> REDIS1
+    end
+
+    subgraph AWS_us_west_2[us-west-2 for perf/staging/prod]
+      VPC2[VPC / Subnets]
+      EKS2[EKS Cluster]
+      ALB2[Application Load Balancer]
+      RDS2[RDS MySQL]
+      REDIS2[ElastiCache Redis]
+      VPC2 --> EKS2
+      VPC2 --> ALB2
+      VPC2 --> RDS2
+      VPC2 --> REDIS2
+    end
+
+    TG[Terragrunt Stacks] --> AWS_us_east_1
+    TG --> AWS_us_west_2
+    TFCloud[Terraform Cloud Workspaces] --> TG
+```
+
+## Pipeline Design Diagram
+
+```mermaid
+flowchart LR
+    Dev[Developer Commit] --> Jenkins[Jenkins Pipeline]
+
+    subgraph App_CI_CD[k8s-pipeline]
+      Jenkins --> Clone[Clone demo-app-code]
+      Clone --> Build[Build Service with Maven]
+      Build --> Image[Build and Push Docker Image]
+      Image --> Deploy[Helm Deploy to K8s]
+    end
+
+    subgraph Infra_CI_CD[terragrunt-aws/pipelines]
+      Jenkins --> NonProd["Jenkinsfile.nonprod<br/>dev/test/perf"]
+      Jenkins --> Prod["Jenkinsfile.prod<br/>staging/production"]
+      NonProd --> TGApply[deploy.sh plan/apply/destroy]
+      Prod --> TGPlan[deploy.sh plan]
+      TGPlan --> Approval[Manual Approval]
+      Approval --> TGDeploy[deploy.sh apply]
+    end
+```
+
 ## Recommended Workflow
 
 1. Build and validate application modules in [demo-app-code](demo-app-code).
