@@ -4,7 +4,9 @@ AWS infrastructure managed with Terraform modules and Terragrunt.
 
 ## Results
 ### Terraform Cloud WorkSpace
-![Uploading image.png…]()
+### Try run
+<img width="1174" height="844" alt="image" src="https://github.com/user-attachments/assets/4c950c45-2932-45e4-a778-a262a21a79cb" />
+
 
 
 ## Environments and Regions
