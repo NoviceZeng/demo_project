@@ -3,7 +3,6 @@
 AWS infrastructure managed with Terraform modules and Terragrunt.
 
 ## Results
-### Terraform Cloud WorkSpace
 ### Dry run and Apply 
 <img width="1174" height="844" alt="image" src="https://github.com/user-attachments/assets/4c950c45-2932-45e4-a778-a262a21a79cb" />
 <img width="1179" height="871" alt="image" src="https://github.com/user-attachments/assets/062dd107-ca72-4553-8d17-1de3b4f5823c" />
