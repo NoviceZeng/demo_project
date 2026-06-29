@@ -45,6 +45,29 @@ terragrunt-aws/
 - AWS credentials configured (profile, SSO, or environment variables)
 - Access to the Terraform Cloud organization defined in [root.hcl](root.hcl)
 
+## Terraform Cloud Credentials (Required for Remote Runs)
+
+This repo uses Terraform Cloud remote execution from [root.hcl](root.hcl), so local AWS CLI credentials are not enough for `terragrunt plan`/`apply`.
+
+Configure AWS credentials in each Terraform Cloud workspace used by this stack:
+
+1. Open the workspace in Terraform Cloud.
+2. Go to Variables.
+3. Add environment variables:
+    - `AWS_ACCESS_KEY_ID`
+    - `AWS_SECRET_ACCESS_KEY`
+    - `AWS_SESSION_TOKEN` (only for temporary credentials)
+    - `AWS_DEFAULT_REGION` (recommended)
+4. Re-run Terragrunt command from this repo.
+
+Workspace naming follows this pattern from [root.hcl](root.hcl):
+
+`terragrunt-<path-relative-to-include>`
+
+Example for `terragrunt/us-east-1/dev/network`:
+
+`terragrunt-terragrunt-us-east-1-dev-network`
+
 ## Quick Start (Recommended)
 
 From project root:
