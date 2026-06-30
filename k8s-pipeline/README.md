@@ -33,7 +33,6 @@ demo-app-k8s-pipeline/
 └── scripts/
     ├── git_util.sh
     ├── java_build.sh
-    ├── helm_image.sh
     ├── helm_deploy.sh
     └── docker_image.sh
 ```
@@ -125,16 +124,6 @@ Current command pattern:
 /opt/maven3.8.6/bin/mvn -pl "${microsvc}" -am clean package
 ```
 
-### `scripts/helm_image.sh`
-
-Builds the Docker image from the selected module directory:
-
-```bash
-demo-app-code/<service>
-```
-
-It expects each service module to contain its own Dockerfile.
-
 ### `scripts/helm_deploy.sh`
 
 Deploys the selected service with Helm.
@@ -165,7 +154,6 @@ You can validate the active shell scripts locally with:
 cd demo_project/k8s-pipeline
 bash -n scripts/git_util.sh
 bash -n scripts/java_build.sh
-bash -n scripts/helm_image.sh
 bash -n scripts/helm_deploy.sh
 bash -n scripts/docker_image.sh
 ```

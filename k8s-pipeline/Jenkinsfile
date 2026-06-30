@@ -46,8 +46,7 @@ pipeline {
         stage('Making docker image') {
             steps {
                 script {
-                    //sh 'sh scripts/docker_image.sh ${Microsvc} ${Harbor_Repo} ${BUILD_NUMBER} ${ReplicaCount} ${Branch}'
-                    sh 'sh scripts/helm_image.sh ${Microsvc} ${Harbor_Repo} ${BUILD_NUMBER} ${GitBranch}'
+                    sh 'sh scripts/docker_image.sh ${Microsvc} ${Harbor_Repo} ${BUILD_NUMBER} ${GitBranch}'
                 }
             }
         }
