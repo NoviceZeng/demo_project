@@ -20,7 +20,7 @@ Each service is intentionally small and exposes a few demo REST endpoints.
 ## Build all services
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/demo-app-code
+cd demo_project/demo-app-code
 mvn clean package
 ```
 
@@ -29,21 +29,21 @@ mvn clean package
 Build one service image with the shared helper script:
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/demo-app-code
+cd demo_project/demo-app-code
 bash build-image.sh user-service harbor.test.com latest
 ```
 
 Build without pushing:
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/demo-app-code
+cd demo_project/demo-app-code
 bash build-image.sh user-service harbor.test.com latest skip-push
 ```
 
 If the module was already packaged, skip the Maven build step:
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/demo-app-code
+cd demo_project/demo-app-code
 bash build-image.sh user-service harbor.test.com latest skip-package
 ```
 
@@ -64,7 +64,7 @@ bash build-image.sh <service> <harbor> <tag> [skip-package] [skip-push]
 Examples:
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/demo-app-code
+cd demo_project/demo-app-code
 
 # Package the module, build the image, and push it
 bash build-image.sh user-service harbor.test.com dev-001
@@ -103,7 +103,7 @@ If you want full manual control, you can package the module yourself and then ru
 Example:
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/demo-app-code
+cd demo_project/demo-app-code
 
 # Build the jar
 mvn -pl user-service -am clean package
@@ -130,14 +130,14 @@ docker push harbor.test.com/demo-app/demo-app-user-service:local-test
 Example: start `user-service`
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/demo-app-code
+cd demo_project/demo-app-code
 mvn -pl user-service spring-boot:run
 ```
 
 Example: start `api-gateway`
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/demo-app-code
+cd demo_project/demo-app-code
 mvn -pl api-gateway spring-boot:run
 ```
 

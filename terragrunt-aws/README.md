@@ -85,7 +85,7 @@ Example for `terragrunt/us-east-1/dev/network`:
 From project root:
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/terragrunt-aws
+cd demo_project/terragrunt-aws
 ```
 
 Full environment deploy:

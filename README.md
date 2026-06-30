@@ -36,7 +36,7 @@ Contains the demo e-commerce microservices and build tooling.
 Quick build:
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/demo-app-code
+cd demo_project/demo-app-code
 mvn clean package
 ```
 

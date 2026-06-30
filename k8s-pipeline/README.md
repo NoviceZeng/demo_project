@@ -162,7 +162,7 @@ demo-app-code/<service>
 You can validate the active shell scripts locally with:
 
 ```bash
-cd /Users/novice/Desktop/test/demo/demo_project/demo-app-k8s-pipeline
+cd demo_project/k8s-pipeline
 bash -n scripts/git_util.sh
 bash -n scripts/java_build.sh
 bash -n scripts/helm_image.sh
