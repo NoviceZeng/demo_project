@@ -12,6 +12,9 @@ pipeline {
     Harbor_Password = "${HARBOR_PASSWORD}"
 	    // Base Git path used to clone the demo-app-code monorepo
         Monorepo_Base_Repo = "ssh://git@git.test.com/demo-app-cloud/"
+        // SonarQube configuration
+        SONARQUBE_HOST_URL = "http://sonarqube.test.com"
+        SONARQUBE_LOGIN = "${SONARQUBE_TOKEN}"
 	}	
 
     parameters {
@@ -42,8 +45,29 @@ pipeline {
                 }
             }
         }
+
+        stage('SonarQube scan') {
+            steps {
+                script {
+                    def scanResult = sh(
+                        script: 'sh scripts/sonarqube_scan.sh ${Microsvc} ${SONARQUBE_HOST_URL} ${SONARQUBE_LOGIN}',
+                        returnStatus: true
+                    )
+                    if (scanResult != 0) {
+                        echo 'SonarQube scan FAILED'
+                        currentBuild.result = 'FAILURE'
+                        error('SonarQube scan failed. Stopping pipeline.')
+                    } else {
+                        echo 'SonarQube scan PASSED'
+                    }
+                }
+            }
+        }
      
         stage('Making docker image') {
+            when {
+                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
+            }
             steps {
                 script {
                     sh 'sh scripts/docker_image.sh ${Microsvc} ${Harbor_Repo} ${BUILD_NUMBER} ${GitBranch}'
@@ -53,7 +77,7 @@ pipeline {
 
         stage('Deploy svc to k8s cluster') {
             when {
-                expression { !params.BuildOnly }
+                expression { !params.BuildOnly && (currentBuild.result == null || currentBuild.result == 'SUCCESS') }
             }
             steps {
                 script {
